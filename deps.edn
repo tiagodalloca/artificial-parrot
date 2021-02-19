@@ -1,0 +1,11 @@
+{:aliases {:dev {:extra-paths ["development/src"
+
+                               "bases/messenger/ui/src"
+                               "bases/messenger/ui/resources"]
+                 :extra-deps {integrant/repl {:mvn/version "0.3.2"}
+
+                              integrant/integrant {:mvn/version "0.8.0"}
+                              compojure/compojure {:mvn/version "1.6.2"}}}}}
+
+;; (set 'cider-clojure-cli-global-options "-M:dev -e \"(require,'user.dalloca)\"")
+
