@@ -15,7 +15,8 @@
   (deliver-messeges! [this sent-messages-atom]
     (do (doseq [{:keys [text direction] :as message} queue]
           (println (str (if-not (= direction :outgoing) ">" "") text))
-          (swap! sent-messages-atom (fn [x] (conj x message))))
+          (when sent-messages-atom
+            (swap! sent-messages-atom (fn [x] (conj x message)))))
         (assoc this :queue (clojure.lang.PersistentQueue/EMPTY)))))
 
 (comment
