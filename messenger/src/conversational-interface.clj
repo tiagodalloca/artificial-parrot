@@ -21,5 +21,8 @@
   (-> (->TerminalMessenger (clojure.lang.PersistentQueue/EMPTY))
       (put-message "salve" :outgoing)
       (put-message "salve salve" :incoming)
-      (put-message "nossa! funcionou :)" :outgoing)
+      (put-message "nossa! funcionou :)" :incoming)
+      (put-message (read-line) :outgoing)
+      (put-message "tendi nada kk" :incoming)
       (deliver-messeges!)))
+
