@@ -4,7 +4,7 @@
   "MessengerInterfaceProtocol"
   (put-message [this text direction]
     "Puts a new `messege` in the queue to be delivered. `direction` may be :incoming or :outgoing")
-  (deliver-messeges! [this sent-messages-atom]
+  (deliver-messeges! [this] [this sent-messages-atom]
     "Deliver messeges in the queue"))
 
 (defrecord TerminalMessenger
@@ -17,7 +17,9 @@
           (println (str (if-not (= direction :outgoing) ">" "") text))
           (when sent-messages-atom
             (swap! sent-messages-atom (fn [x] (conj x message)))))
-        (assoc this :queue (clojure.lang.PersistentQueue/EMPTY)))))
+        (assoc this :queue (clojure.lang.PersistentQueue/EMPTY))))
+  (deliver-messeges! [this]
+    (deliver-messeges! this nil)))
 
 (comment
   (let [sent-messages-atom (atom [])]
