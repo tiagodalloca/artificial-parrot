@@ -1,5 +1,4 @@
 {:aliases {:dev {:extra-paths ["development/src"
-
                                "messenger/src"]
                  :extra-deps {integrant/repl {:mvn/version "0.3.2"}
 

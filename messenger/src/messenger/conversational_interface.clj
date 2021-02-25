@@ -1,4 +1,4 @@
-(ns conversational-interface)
+(ns messenger.conversational-interface)
 
 (defprotocol MessengerInterfaceProtocol
   "MessengerInterfaceProtocol"
@@ -14,9 +14,11 @@
     (assoc this :queue (conj queue {:text text :direction direction})))
   (deliver-messeges! [this sent-messages-atom]
     (do (doseq [{:keys [text direction] :as message} queue]
-          (println (str (if-not (= direction :outgoing) ">" "") text))
+          (when (= direction :incoming) (println (str ">" text)))
           (when sent-messages-atom
-            (swap! sent-messages-atom (fn [x] (conj x message)))))
+            (swap! sent-messages-atom
+                   (fn [x] (conj x (assoc message :timestamp
+                                         (str (java.time.Instant/now))))))))
         (assoc this :queue (clojure.lang.PersistentQueue/EMPTY))))
   (deliver-messeges! [this]
     (deliver-messeges! this nil)))
@@ -31,3 +33,4 @@
         (deliver-messeges! sent-messages-atom))
     @sent-messages-atom))
 
+(defn terminal-messenger [] (->TerminalMessenger (clojure.lang.PersistentQueue/EMPTY)))
