@@ -23,8 +23,7 @@
 (defn deliver-messages! []
   (when-let [m (some-> integrant.repl.state/system (:messenger/terminal-messenger))]
     (when-let [last-sent-message (some-> integrant.repl.state/system (:messenger/last-sent-message))]
-      (messenger-deliver! m last-sent-message)
-      (reset! last-sent-message []))))
+      (messenger-deliver! m last-sent-message))))
 
 (defmethod ig/init-key :messenger/listeners [_ _]
   (atom []))
