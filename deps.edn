@@ -1,5 +1,11 @@
-{:aliases {:dev {:extra-paths ["development/src"
-                               "messenger/src"]
+{:deps {aero/aero {:mvn/version "1.1.6"}
+        clj-http/clj-http {:mvn/version "3.12.0"}}
+
+ :aliases {:dev {:extra-paths ["development/src"
+                               "development/resources"
+                               "messenger/src"
+                               "messenger/resources"]
+
                  :extra-deps {integrant/repl {:mvn/version "0.3.2"}
 
                               integrant/integrant {:mvn/version "0.8.0"}
