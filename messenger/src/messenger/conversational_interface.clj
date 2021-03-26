@@ -8,10 +8,12 @@
     "Deliver messages in the queue"))
 
 (defrecord TerminalMessenger
-    [queue]
+    [conv-name queue]
   MessengerInterfaceProtocol
   (put-message [this text direction]
-    (assoc this :queue (conj queue {:text text :direction direction})))
+    (assoc this :queue (conj queue {:conv-name conv-name
+                                    :text text
+                                    :direction direction})))
   (deliver-messages! [this last-sent-message-atom]
     (do (doseq [{:keys [text direction] :as message} queue]
           (if (= direction :incoming)
@@ -26,7 +28,9 @@
 
 (comment
   (let [last-sent-message-atom (atom nil)]
-    (-> (->TerminalMessenger (clojure.lang.PersistentQueue/EMPTY))
+    (-> (->TerminalMessenger
+         "conversation-example"
+         (clojure.lang.PersistentQueue/EMPTY))
         (put-message "salve" :outgoing)
         (put-message "salve salve" :incoming)
         (put-message "nossa! funcionou :)" :incoming)
@@ -34,7 +38,7 @@
         (deliver-messages! last-sent-message-atom))
     @last-sent-message-atom))
 
-(defn terminal-messenger [] (->TerminalMessenger (clojure.lang.PersistentQueue/EMPTY)))
+(defn terminal-messenger [conv-name] (->TerminalMessenger conv-name (clojure.lang.PersistentQueue/EMPTY)))
 
 (defn messenger-put-message! [messenger-ref text direction]
   (swap! messenger-ref (fn [m] (put-message m text direction))))

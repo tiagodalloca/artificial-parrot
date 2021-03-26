@@ -27,7 +27,8 @@
 
 (defmethod ig/init-key :messenger/terminal-messenger [_ {:keys [introduction]}]
   (do (->> (reduce (fn [acc x] (put-message acc x :incoming))
-                   (terminal-messenger) introduction)
+                   (terminal-messenger (str "conversation/" (java.time.Instant/now)))
+                   introduction)
            (atom))))
 
 (defmethod ig/init-key :messenger/println-listener [k {:keys [listeners-ref]}]
