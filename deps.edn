@@ -3,7 +3,9 @@
         clj-http/clj-http {:mvn/version "3.12.0"}
         org.clojure/data.json {:mvn/version "2.0.1"}        
         metosin/reitit {:mvn/version "0.5.12"}
-        ring/ring-jetty-adapter {:mvn/version "1.9.2"}}
+        ring/ring-jetty-adapter {:mvn/version "1.9.2"}
+        github-tiagodalloca/eep
+        {:git/url "https://github.com/tiagodalloca/eep" :sha "88c0cb678358cd30b3b6d97e043b74abcf15bd8a"}}
 
  :aliases {:dev {:extra-paths ["development/src"
                                "development/resources"

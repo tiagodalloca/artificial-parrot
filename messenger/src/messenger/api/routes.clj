@@ -10,7 +10,9 @@
             [reitit.ring.middleware.parameters :as parameters]
             [muuntaja.core :as m]
             [clojure.java.io :as io]
-            [malli.util :as mu]))
+            [malli.util :as mu]
+
+            [messenger.api.handlers :as api-handlers]))
 
 (def message-schema
   [:map [:text string?]])
@@ -23,7 +25,7 @@
     {:post {:parameters {:body message-schema}
             :responses {200 {:body [:map [:status string?]]}}
             :handler (fn [{{{:keys [text]} :body} :parameters}]
-                       {:status 200 :body "ok"})}}]])
+                       (api-handlers/message-post text))}}]])
 
 (def options
   {;;:reitit.middleware/transform dev/print-request-diffs ;; pretty diffs
