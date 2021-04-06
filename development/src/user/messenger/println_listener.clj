@@ -1,6 +1,11 @@
 (ns user.messenger.println-listener
-  (:require [integrant.core :as ig]
-            [messenger.conversational-interface :refer [terminal-messenger put-message messenger-put-message! messenger-deliver!]]))
+  (:require [artificial-parrot.messenger.conversational-interface
+             :refer
+             [messenger-deliver!
+              messenger-put-message!
+              put-message
+              terminal-messenger]]
+            [integrant.core :as ig]))
 
 (def config
   {:messenger/listeners {}

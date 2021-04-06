@@ -1,4 +1,4 @@
-(ns messenger.notifier)
+(ns artificial-parrot.messenger.notifier)
 
 (defmulti notify-message!
   (fn [opts messages] (get :type opts)))

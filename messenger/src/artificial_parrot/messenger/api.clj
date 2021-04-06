@@ -1,5 +1,5 @@
-(ns messenger.api
-  (:require [messenger.api.routes :refer [routes options]]
+(ns artificial-parrot.messenger.api
+  (:require [artificial-parrot.messenger.api.routes :refer [options routes]]
             [reitit.ring :as ring]
             [ring.adapter.jetty :as jetty]))
 

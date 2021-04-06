@@ -1,8 +1,7 @@
-(ns messenger.notifier.http
-  (:require [clj-http.client :as http-client]
-            [clojure.data.json :as json]
-            
-            [messenger.notifier :refer [notify-message!]]))
+(ns artificial-parrot.messenger.notifier.http
+  (:require [artificial-parrot.messenger.notifier :refer [notify-message!]]
+            [clj-http.client :as http-client]
+            [clojure.data.json :as json]))
 
 (defn- prepare-body [message]
   message)

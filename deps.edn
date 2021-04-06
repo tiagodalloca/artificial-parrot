@@ -4,6 +4,8 @@
         org.clojure/data.json {:mvn/version "2.0.1"}        
         metosin/reitit {:mvn/version "0.5.12"}
         ring/ring-jetty-adapter {:mvn/version "1.9.2"}
+        org.clojure/core.async {:mvn/version "1.3.610"}
+
         github-tiagodalloca/eep
         {:git/url "https://github.com/tiagodalloca/eep" :sha "88c0cb678358cd30b3b6d97e043b74abcf15bd8a"}}
 

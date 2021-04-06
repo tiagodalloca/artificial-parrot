@@ -1,4 +1,4 @@
-(ns messenger.conversational-interface)
+(ns artificial-parrot.messenger.conversational-interface)
 
 (defprotocol MessengerInterfaceProtocol
   "MessengerInterfaceProtocol"

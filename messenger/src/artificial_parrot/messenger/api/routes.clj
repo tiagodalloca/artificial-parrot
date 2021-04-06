@@ -1,18 +1,17 @@
-(ns messenger.api.routes
-  (:require [reitit.ring :as ring]
-            [reitit.coercion.malli]
-            [reitit.ring.malli]
-            [reitit.ring.coercion :as coercion]
-            [reitit.dev.pretty :as pretty]
-            [reitit.ring.middleware.muuntaja :as muuntaja]
-            [reitit.ring.middleware.exception :as exception]
-            [reitit.ring.middleware.multipart :as multipart]
-            [reitit.ring.middleware.parameters :as parameters]
-            [muuntaja.core :as m]
+(ns artificial-parrot.messenger.api.routes
+  (:require [artificial-parrot.messenger.api.handlers :as api-handlers]
             [clojure.java.io :as io]
             [malli.util :as mu]
-
-            [messenger.api.handlers :as api-handlers]))
+            [muuntaja.core :as m]
+            reitit.coercion.malli
+            [reitit.dev.pretty :as pretty]
+            [reitit.ring :as ring]
+            [reitit.ring.coercion :as coercion]
+            reitit.ring.malli
+            [reitit.ring.middleware.exception :as exception]
+            [reitit.ring.middleware.multipart :as multipart]
+            [reitit.ring.middleware.muuntaja :as muuntaja]
+            [reitit.ring.middleware.parameters :as parameters]))
 
 (def message-schema
   [:map [:text string?]])
