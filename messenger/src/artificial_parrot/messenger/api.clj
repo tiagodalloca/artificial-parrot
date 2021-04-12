@@ -1,18 +1,12 @@
 (ns artificial-parrot.messenger.api
-  (:require [artificial-parrot.messenger.api.routes :refer [options routes]]
-            [reitit.ring :as ring]
+  (:require [reitit.ring :as ring]
             [ring.adapter.jetty :as jetty]))
 
-(defn app []
-  (ring/ring-handler
-   (ring/router (routes) options)))
+(defn app [router]
+  (ring/ring-handler router))
 
-(defn start-server []
-  (with-local-vars [instance-app (app)]
-    (jetty/run-jetty instance-app {:port 8080 :join? false})))
+(defn start-server [{:keys [router port] :as deps}]
+  (let [instance-app (app router)]
+    (def instance-app instance-app)
+    (jetty/run-jetty #'instance-app {:port port :join? false})))
 
-(comment
-  (defonce server (start-server)))
-
-(comment
-  (.stop server))

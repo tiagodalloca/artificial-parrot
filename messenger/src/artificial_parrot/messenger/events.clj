@@ -29,24 +29,23 @@
                       :exit-chan (async/chan)
                       :pool (Executors/newFixedThreadPool 2)
                       :running? (atom false)}]
-     (if immediately-start?
-       (start-listening emitter-ret)
-       emitter-ret)))
+     (when immediately-start?
+       (start-listening emitter-ret))
+     emitter-ret))
   ([] (create-emitter {})))
 
 (defn stop-listening [{:keys [exit-chan] :as emitter}]
   (async/put! exit-chan true))
 
 (defn add-observer [emitter event-t observer-id observer]
-  (update
-   emitter :observers
-   (fn [obs-atom]
-     (swap! obs-atom
-            (fn [obs]
-              (update obs event-t
-                      (fn [m] (if m
-                                (assoc m observer-id observer)
-                                (array-map observer-id observer)))))))))
+  (letfn [(add-observer-to-event-t [m]
+            (if m
+              (assoc m observer-id observer)
+              (array-map observer-id observer)))
+          (add-observer-to-observers [observers]
+            (update observers event-t add-observer-to-event-t))]
+    (update emitter :observers
+            (fn [obs-atom] (swap! obs-atom add-observer-to-observers)))))
 
 (defn remove-observer [emitter event-t observer-id]
   (update
