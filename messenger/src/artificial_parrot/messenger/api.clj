@@ -7,6 +7,5 @@
 
 (defn start-server [{:keys [router port] :as deps}]
   (let [instance-app (app router)]
-    (def instance-app instance-app)
-    (jetty/run-jetty #'instance-app {:port port :join? false})))
+    (jetty/run-jetty instance-app {:port port :join? false})))
 

@@ -22,7 +22,8 @@
 
 (defn- get-routes [handlers]
   (def message-post-handler (::api-handlers/message-post handlers))
-  [["api/message"
+  ["/api/"
+   ["message"
     {:post {:parameters {:body message-schema}
             :responses {200 {:body [:map [:message string?]]}}
             :handler (::api-handlers/message-post handlers)}}]])
@@ -52,41 +53,43 @@
       :options nil
       })
     
-    ;; :muuntaja m/instance
-    ;; :middleware [;; query-params & form-params
-    ;;              parameters/parameters-middleware
-    ;;              ;; content-negotiation
-    ;;              muuntaja/format-negotiate-middleware
-    ;;              ;; encoding response body
-    ;;              muuntaja/format-response-middleware
-    ;;              ;; exception handling
-    ;;              (exception/create-exception-middleware
-    ;;               (merge
-    ;;                exception/default-handlers
-    ;;                {;; print stack-traces for all exceptions
-    ;;                 ::exception/wrap (fn [handler e request]
-    ;;                                    (.printStackTrace e)
-    ;;                                    (handler e request))}))
-    ;;              ;; decoding request body
-    ;;              muuntaja/format-request-middleware
-    ;;              ;; coercing response bodys
-    ;;              ;; coercion/coerce-response-middleware
-    ;;              ;; coercing request parameters
-    ;;              coercion/coerce-request-middleware
-    ;;              ;; multipart
-    ;;              multipart/multipart-middleware]}
-
     :muuntaja m/instance
-    :middleware [params/wrap-params
-                 muuntaja/format-middleware
-                 coercion/coerce-exceptions-middleware
+    :middleware [;; query-params & form-params
+                 parameters/parameters-middleware
+                 ;; content-negotiation
+                 muuntaja/format-negotiate-middleware
+                 ;; encoding response body
+                 muuntaja/format-response-middleware
+                 ;; exception handling
+                 (exception/create-exception-middleware
+                  (merge
+                   exception/default-handlers
+                   {;; print stack-traces for all exceptions
+                    ::exception/wrap (fn [handler e request]
+                                       (.printStackTrace e)
+                                       (handler e request))}))
+                 ;; decoding request body
+                 muuntaja/format-request-middleware
+                 ;; coercing response bodys
+                 ;; coercion/coerce-response-middleware
+                 ;; coercing request parameters
                  coercion/coerce-request-middleware
-                 coercion/coerce-response-middleware]}})  
+                 ;; multipart
+                 multipart/multipart-middleware]
+
+    ;;  m/instance
+    ;; :middleware [params/wrap-params
+    ;;              muuntaja/format-middleware
+    ;;              coercion/coerce-exceptions-middleware
+    ;;              coercion/coerce-request-middleware
+    ;;              coercion/coerce-response-middleware]
+
+    }})
 
 (defn get-router [{:keys [handlers] :as deps}]
-  (let [routes (get-routes handlers)]
-    (ring/router routes options)))
+(let [routes (get-routes handlers)]
+  (ring/router routes options)))
 
 (comment
-  (def routes (get-routes user.messenger.system-prototype/handlers)))
+(def routes (get-routes user.messenger.system-prototype/handlers)))
 
