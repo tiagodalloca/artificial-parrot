@@ -68,7 +68,7 @@
        ::api/message-post
        ::terminal-messenger
        (fn [[{:keys [text]}]]
-         (messenger-put-message! terminal-messenger-atom text :outgoing)
+         (messenger-put-message! terminal-messenger-atom text :incoming)
          (deliver-messages!)))
       terminal-messenger-atom))
 
