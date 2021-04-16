@@ -23,33 +23,28 @@
 (def ^:private webhook-listener-post-schema
   [:map [:url string?
          :headers [:map]
-         :queryParameters [:map]
-         :body string?]])
+         :query-params [:map]]])
 
 (def ^:private webhook-listener
   [:map [:id string?
          :url string?
          :headers [:map]
-         :queryParameters [:map]
-         :body string?]])
+         :query-params [:map]]])
 
 (comment
   (malli.core/validate webhook-listener-schema
                        {:url "localhost:6969/some-api/"
                         :headers {"auth" "some-id"}
-                        :queryParameters {"token" "some-token"}
-                        :body "{\"arg1\": \"arg1-value\"}"}))
+                        :query-params {"token" "some-token"}}))
 
 (defn- get-routes [handlers]
-  (def message-post-handler (::api-handlers/message-post handlers))
   ["/api/"
    ["message"
     {:post
      {:parameters {:body message-schema}
       :responses {200 {:body [:map [:message string?]]}}
-      :handler (::api-handlers/message-post handlers)}}
-
-    "webhook-listener"
+      :handler (::api-handlers/message-post handlers)}}]
+   ["webhook-listener"
     {:post
      {:parameters {:body webhook-listener-post-schema}
       :responses {200 {:body [:map [:message string?
@@ -116,8 +111,8 @@
     }})
 
 (defn get-router [{:keys [handlers] :as deps}]
-(let [routes (get-routes handlers)]
-  (ring/router routes options)))
+  (let [routes (get-routes handlers)]
+    (ring/router routes options)))
 
 (comment
   (def routes (get-routes user.messenger.system-prototype/handlers)))

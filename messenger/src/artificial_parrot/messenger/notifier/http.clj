@@ -4,17 +4,19 @@
             [clojure.data.json :as json]))
 
 (defn- prepare-body [message]
-  message)
+  (cheshire.core/encode {:message message}))
 
-(defn http-notify! [url message]
+(defn http-notify! [url message {:keys [headers query-params]}]
   (http-client/post
    url
-   {:body (prepare-body message)
+   {:headers headers
+    :query-params query-params
+    :body (prepare-body message)
     :accept :json}))
 
 (defmethod notify-message! ::http-notifier
   http-notify-message!
   [{:keys [url] :as opts} messages]
   (doseq [m messages]
-    (http-notify! url m)))
+    (http-notify! url m opts)))
 

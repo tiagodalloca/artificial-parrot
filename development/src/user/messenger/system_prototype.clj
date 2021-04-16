@@ -13,6 +13,7 @@
             [artificial-parrot.messenger.api.handlers :refer [get-handlers]]
             [artificial-parrot.messenger.api.router :refer [get-router]]
             [artificial-parrot.messenger.api :refer [start-server] :as api]
+            [artificial-parrot.async :refer [execute-async]]
 
             [integrant.core :as ig]
             [integrant.repl :refer [clear go halt init prep reset reset-all]]
@@ -119,21 +120,29 @@
      ::api/webhook-listener-delete
      ::http-listeners
      (fn [[id]]
-       (swap! http-listeners (fn [listeners] (dissoc listeners id))))))
-  {:emitter emitter})
+       (swap! http-listeners (fn [listeners] (dissoc listeners id)))))
+    {:http-listeners http-listeners
+     :emitter emitter}))
 
 (defmethod ig/halt-key! ::http-listeners [_ {:keys [emitter]}]
   (events/remove-observer
-   emitter ::api/webhook-listener-post ::http-listeners)
-  (events/remove-observer ::api/webhook-listener-delete ::http-listeners))
+   emitter
+   ::api/webhook-listener-post
+   ::http-listeners)
+  (events/remove-observer
+   emitter
+   ::api/webhook-listener-delete
+   ::http-listeners))
 
-(defmethod ig/init-key ::http-notifier [_ {:keys [opts http-listeners emitter] :as args}]
+(defmethod ig/init-key ::http-notifier [_ {:keys [opts emitter] :as args
+                                           {:keys [http-listeners]} :http-listeners}]
   (events/add-observer
    emitter
    ::api/message-post
    ::messenger-interface/message-delivered
    (fn [[message]]
-     (notify-message! opts [message])))
+     (doseq [[_ listener] @http-listeners]
+       (execute-async #(notify-message! (merge opts listener) [message]) nil))))
   args)
 
 (defmethod ig/init-key ::http-notifier [_ {:keys [emitter]}]
@@ -171,14 +180,17 @@
   (def app (artificial-parrot.messenger.api/app router))
   (def handlers (get integrant.repl.state/system ::handlers))
   (def emitter (get integrant.repl.state/system ::emitter))
-  (def app artificial-parrot.messenger.api/instance-app)
+  (def http-listeners (get integrant.repl.state/system ::http-listeners))
+  ;; (def app artificial-parrot.messenger.api/instance-app)
 
-  (def resp
-    (-> (ring-mock/request :post "api/message")
-        (ring-mock/json-body {:text "olá de volta"})
-        (ring-mock/header "Accept" "application/json")
-        (->> (def mock-request) deref)
-        app))
+  (-> (ring-mock/request :post "/api/message")
+      (ring-mock/json-body {:text "olá de volta"})
+      (ring-mock/header "Accept" "application/json")
+      (->> (def mock-request) deref)
+      app
+      (->> (def resp) deref))
+
+  (reitit.core/match-by-path router "/api/message")
 
   (app ring.adapter.jetty/request-map)
 
