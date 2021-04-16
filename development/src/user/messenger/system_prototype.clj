@@ -126,6 +126,9 @@
         (->> (def mock-request) deref)
         app))
 
+  (app ring.adapter.jetty/request-map)
+
+
   (-> 
    ;; (ring-mock/request :post "api/message")
    ;; (ring-mock/json-body {:text "olá de volta"})
@@ -134,6 +137,7 @@
    ;; app
    ring.adapter.jetty/request-map
    :body
+   ;; .getInputStream
    (java.io.InputStreamReader. java.nio.charset.StandardCharsets/UTF_8)
    (java.io.BufferedReader.)
    (.lines)
