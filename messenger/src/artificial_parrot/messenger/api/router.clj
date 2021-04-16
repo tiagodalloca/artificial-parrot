@@ -77,7 +77,29 @@
     ;;              multipart/multipart-middleware]}
 
     :muuntaja m/instance
-    :middleware [params/wrap-params
+    :middleware [
+
+                 ;; {:name ::body-string
+                 ;;  :description "Body InputStream to string"
+                 ;;  :wrap (fn [handler]
+                 ;;          (println "asdf")
+                 ;;          (fn [request]
+                 ;;            (println request)
+                 ;;            (handler
+                 ;;             (update request :body
+                 ;;                     (fn [is]
+                 ;;                       (-> is
+                 ;;                           (as-> is (println  (str "OI: "is)) is)
+                 ;;                           (java.io.InputStreamReader. java.nio.charset.StandardCharsets/UTF_8)
+                 ;;                           (java.io.BufferedReader.)
+                 ;;                           (.lines)
+                 ;;                           (.collect (java.util.stream.Collectors/toList))
+                 ;;                           (->> (java.lang.String/join "\n"))
+                 ;;                           (->> (def request-500-problem) deref)
+                 ;;                           (->> (str "request body: "))
+                 ;;                           println))))))}
+
+                 params/wrap-params
                  muuntaja/format-middleware
                  coercion/coerce-exceptions-middleware
                  coercion/coerce-request-middleware

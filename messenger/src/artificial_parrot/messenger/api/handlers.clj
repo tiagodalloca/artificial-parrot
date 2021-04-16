@@ -1,5 +1,5 @@
 (ns artificial-parrot.messenger.api.handlers
-  (:require [artificial-parrot.messenger.events :as events]
+  (:require [artificial-parrot.events :as events]
             [artificial-parrot.messenger.api :as api]))
 
 (defn message-post [{:keys [emitter] :as deps}

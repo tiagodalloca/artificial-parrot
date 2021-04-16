@@ -1,4 +1,4 @@
-(ns artificial-parrot.messenger.events
+(ns artificial-parrot.events
   (:require [clojure.core.async :as async])
   (:import [java.util.concurrent Executors]))
 

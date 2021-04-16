@@ -11,6 +11,10 @@
 
  :aliases {:dev {:extra-paths ["development/src"
                                "development/resources"
+
+                               "shared/src"
+                               "shared/resources"
+
                                "messenger/src"
                                "messenger/resources"]
 

@@ -12,7 +12,7 @@
             [user.messenger.println-listener
              :refer
              [deliver-messages! send-message!]]
-            [artificial-parrot.messenger.events :refer :all]))
+            [artificial-parrot.events :refer :all]))
 
 (comment (in-ns 'user.dalloca))
 

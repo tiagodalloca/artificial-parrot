@@ -15,7 +15,7 @@
 
             [integrant.core :as ig]
             [integrant.repl :refer [clear go halt init prep reset reset-all]]
-            [artificial-parrot.messenger.events :as events :refer [create-emitter]]
+            [artificial-parrot.events :as events :refer [create-emitter]]
             [ring.mock.request :as ring-mock]))
 
 (def config
