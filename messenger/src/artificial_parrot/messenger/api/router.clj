@@ -20,16 +20,45 @@
 (comment
   (malli.core/validate message-schema {:text "Hi!"}))
 
+(def ^:private webhook-listener-post-schema
+  [:map [:url string?
+         :headers [:map]
+         :queryParameters [:map]
+         :body string?]])
+
+(def ^:private webhook-listener
+  [:map [:id string?
+         :url string?
+         :headers [:map]
+         :queryParameters [:map]
+         :body string?]])
+
+(comment
+  (malli.core/validate webhook-listener-schema
+                       {:url "localhost:6969/some-api/"
+                        :headers {"auth" "some-id"}
+                        :queryParameters {"token" "some-token"}
+                        :body "{\"arg1\": \"arg1-value\"}"}))
+
 (defn- get-routes [handlers]
   (def message-post-handler (::api-handlers/message-post handlers))
   ["/api/"
    ["message"
-    {:post {:parameters {:body message-schema}
-            :responses {200 {:body [:map [:message string?]]}}
-            :handler (::api-handlers/message-post handlers)}}]])
+    {:post
+     {:parameters {:body message-schema}
+      :responses {200 {:body [:map [:message string?]]}}
+      :handler (::api-handlers/message-post handlers)}}
 
-(comment
-  (message-post-handler {:parameters {:body { :text "olá de volta"}}}))
+    "webhook-listener"
+    {:post
+     {:parameters {:body webhook-listener-post-schema}
+      :responses {200 {:body [:map [:message string?
+                                    :webhook-listener webhook-listener]]}}
+      :handler (::api-handlers/webhook-listener-post handlers)}
+     :delete
+     {:parameters {:query [:map {:id string?}]}
+      :responses {200 {:body [:map [:message string?]]}}
+      :handler (::api-handlers/webhook-listener-delete handlers)}}]])
 
 (def ^:private options
   {;;:reitit.middleware/transform dev/print-request-diffs ;; pretty diffs

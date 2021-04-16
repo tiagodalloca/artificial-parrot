@@ -1,9 +1,7 @@
 (ns artificial-parrot.events
-  (:require [clojure.core.async :as async])
+  (:require [clojure.core.async :as async]
+            [artificial-parrot.async :refer [execute-async]])
   (:import [java.util.concurrent Executors]))
-
-(defn- execute-async [pool f args]
-  (.submit pool (fn [] (apply f args))))
 
 (defn- handle-dispach-async [{:keys [observers pool] :as emitter} [event-t & args]]
   (let [event-obs (get @observers event-t)]
@@ -21,17 +19,18 @@
   (reset! (:running? emitter) true))
 
 (defn create-emitter
-  ([{:keys [pool-size chan-buf-size chan-buf immediately-start?] :as opts}]
+  ([{:keys [pool pool-size chan-buf-size chan-buf immediately-start?] :as opts}]
    (let [pool-size (or pool-size 8)
+         pool (or pool (Executors/newFixedThreadPool pool-size))
          chan (async/chan (or chan-buf chan-buf-size 8))
-         emitter-ret {:observers (atom {})
-                      :chan chan
-                      :exit-chan (async/chan)
-                      :pool (Executors/newFixedThreadPool 2)
-                      :running? (atom false)}]
+         emitter {:observers (atom {})
+                  :chan chan
+                  :exit-chan (async/chan)
+                  :pool pool
+                  :running? (atom false)}]
      (when immediately-start?
-       (start-listening emitter-ret))
-     emitter-ret))
+       (start-listening emitter))
+     emitter))
   ([] (create-emitter {})))
 
 (defn stop-listening [{:keys [exit-chan] :as emitter}]

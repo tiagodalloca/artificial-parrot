@@ -9,6 +9,7 @@
               terminal-messenger]]
             [artificial-parrot.messenger.notifier :refer [notify-message!]]
             [artificial-parrot.messenger.notifier.stdout :as stdout-notifier]
+            [artificial-parrot.messenger.notifier.http :as http-notifier]
             [artificial-parrot.messenger.api.handlers :refer [get-handlers]]
             [artificial-parrot.messenger.api.router :refer [get-router]]
             [artificial-parrot.messenger.api :refer [start-server] :as api]
@@ -19,25 +20,25 @@
             [ring.mock.request :as ring-mock]))
 
 (def config
-  {
-
-   ::emitter  {:opts {:pool-size 1
+  {::thread-pool {:pool-size 8}
+   ::emitter  {:opts {:pool (ig/ref ::thread-pool)
                       :chan-buf-size 10
                       :immediately-start? true}}
 
-   ::terminal-messenger
-   {:introduction ["Let's shatter those dreams"]
-    :emitter (ig/ref ::emitter)}
+   ::terminal-messenger {:introduction ["Let's shatter those dreams"]
+                         :emitter (ig/ref ::emitter)}
 
    ::println-notifier {:opts {:type ::stdout-notifier/stdout-notifier}
                        :emitter (ig/ref ::emitter)}
+   ::http-listeners {:emitter (ig/ref ::emitter)}
+   ::http-notifier {:opts {:type ::http-notifier/http-notifier}
+                    :http-listeners (ig/ref ::http-listeners)
+                    :emitter (ig/ref ::emitter)}
    
    ::server {:router (ig/ref ::router)
              :port 6942}
    ::router {:handlers (ig/ref ::handlers)}
-   ::handlers {:emitter (ig/ref ::emitter)}
-   
-   })
+   ::handlers {:emitter (ig/ref ::emitter)}})
 
 (integrant.repl/set-prep! (constantly config))
 
@@ -72,21 +73,74 @@
          (deliver-messages!)))
       terminal-messenger-atom))
 
+(defmethod ig/init-key ::thread-pool [_ {:keys [pool-size]}]
+  (alter-var-root #'artificial-parrot.async/*default-thread-pool*
+                  (constantly (artificial-parrot.async/create-thread-pool pool-size)))
+  artificial-parrot.async/*default-thread-pool*)
+
+(defmethod ig/halt-key! ::thread-pool [_ thread-pool]
+  (.shutdown thread-pool))
+
 (defmethod ig/init-key ::emitter [_ {:keys [opts]}]
   (events/create-emitter opts))
+
 (defmethod ig/halt-key! ::emitter [_ emitter]
   (when emitter
     (def emitter)
     (events/stop-listening emitter)))
 
 (defmethod ig/init-key ::println-notifier [_ {:keys [opts emitter] :as args}]
-  (def args args)
   (events/add-observer
    emitter
    ::messenger-interface/message-delivered
    ::println-notifier
    (fn [[message]]
-     (notify-message! opts [message]))))
+     (notify-message! opts [message])))
+  args)
+
+(defmethod ig/init-key ::println-notifier [_ {:keys [opts emitter]}]
+  (events/remove-observer
+   emitter
+   ::messenger-interface/message-delivered
+   ::println-notifier))
+
+(defmethod ig/init-key ::http-listeners [_ {:keys [emitter]}]
+  (let [http-listeners (atom {})]
+    (events/add-observer
+     emitter
+     ::api/webhook-listener-post
+     ::http-listeners
+     (fn [[{:keys [id] :as webhook-listener}]]
+       (swap! http-listeners
+              (fn [listeners]
+                (assoc listeners id webhook-listener)))))
+    (events/add-observer
+     emitter
+     ::api/webhook-listener-delete
+     ::http-listeners
+     (fn [[id]]
+       (swap! http-listeners (fn [listeners] (dissoc listeners id))))))
+  {:emitter emitter})
+
+(defmethod ig/halt-key! ::http-listeners [_ {:keys [emitter]}]
+  (events/remove-observer
+   emitter ::api/webhook-listener-post ::http-listeners)
+  (events/remove-observer ::api/webhook-listener-delete ::http-listeners))
+
+(defmethod ig/init-key ::http-notifier [_ {:keys [opts http-listeners emitter] :as args}]
+  (events/add-observer
+   emitter
+   ::api/message-post
+   ::messenger-interface/message-delivered
+   (fn [[message]]
+     (notify-message! opts [message])))
+  args)
+
+(defmethod ig/init-key ::http-notifier [_ {:keys [emitter]}]
+  (events/remove-observer
+   emitter
+   ::api/message-post
+   ::messenger-interface/message-delivered))
 
 (defmethod ig/init-key ::handlers [_ {:keys [emitter]}]
   (get-handlers {:emitter emitter}))
