@@ -11,4 +11,7 @@
    (.submit pool (fn [] (apply f args)))
    true)
   ([f args]
-   (when *default-thread-pool* (execute-async *default-thread-pool* f args))))
+   (if *default-thread-pool*
+     (execute-async *default-thread-pool* f args)
+     (throw (ex-info "Can't execute async: *default-thread-pool* is nill"
+                     {:f f :args args})))))
