@@ -3,16 +3,41 @@
             [artificial-parrot.async :refer [execute-async]])
   (:import [java.util.concurrent Executors]))
 
-(defn- handle-dispach-async [{:keys [observers handlers pool] :as emitter}
-                             {:keys [event-t args handler-promise]}]
+(defn- handle-dispach-async [{:keys [observers
+                                     handlers
+                                     pool] :as emitter}
+                             {:keys [event-t
+                                     args
+                                     handler-promise
+                                     enforce-handler]}]
   (let [event-obs (get @observers event-t)
         event-handler (get @handlers event-t)
-        vargs (vector args)]
-    (when  event-handler
-      (execute-async pool event-handler (conj vargs handler-promise)))
+        vargs (vector args)
+        exceptions-wrapper (fn [f ex-handler]
+                             (fn [& args]
+                               (try
+                                 (apply f args)
+                                 (catch Exception e
+                                   (ex-handler e)))))]
+    (if event-handler
+      (execute-async
+       pool
+       (exceptions-wrapper event-handler (fn [ex] (deliver handler-promise ex)))
+       (conj vargs handler-promise))
+      (deliver handler-promise
+               (if enforce-handler
+                 (ex-info
+                  (str "No handler found for event " event-t)
+                  {:cause ::no-handler-found
+                   :event-t event-t
+                   :args args})
+                 nil)))
     (when event-obs
       (doseq [[id f] event-obs]
-        (execute-async pool f vargs)))))
+        (execute-async
+         pool
+         (exceptions-wrapper f identity)
+         vargs)))))
 
 (defn start-listening [{:keys [observers chan exit-chan running?] :as emitter}]
   (async/go-loop []
@@ -75,44 +100,50 @@
                    (fn [handlers-map]
                      (dissoc handlers-map event-t))))))
 
-(defn dispatch-event [{:keys [chan] :as emitter} event-t & args]
-  (async/put! chan {:event-t event-t :args args}))
-
-(defn dispatch-event-with-handler [{:keys [chan] :as emitter} event-t & args]
-  (let [handler-promise (promise)]
-    (async/put! chan {:event-t event-t
-                      :args args
-                      :handler-promise handler-promise})
-    handler-promise))
+(defn dispatch-event
+  ([{:keys [chan] :as emitter}
+    [event-t & args :as event]
+    {:keys [enforce-handler] :as opts}]
+   (let [handler-promise (promise)]
+     (async/put! chan {:event-t event-t
+                       :args args
+                       :handler-promise handler-promise
+                       :enforce-handler enforce-handler})
+     handler-promise))
+  ([emitter event]
+   (dispatch-event emitter event {})))
 
 (comment
   (let [test-emitter (create-emitter {:pool-size 1
                                       :chan-buf-size 10
                                       :immediately-start? true})]
-    (add-observer test-emitter :oi :println-obs println)
-    (dispatch-event test-emitter :oi "ola")))
+    (add-observer test-emitter :hi :println-obs println)
+    (dispatch-event test-emitter :hi "ola")))
 
 (comment
   (def test-emitter (create-emitter {:pool-size 10
                                      :chan-buf-size 10
                                      :immediately-start? false}))
   (start-listening test-emitter)
-  (add-observer test-emitter :oi :println-obs println)
-  (dispatch-event test-emitter :oi "oi")
+  (add-observer test-emitter :hi :println-obs println)
+
+  (deref (dispatch-event test-emitter [:hi "hi"] {:enforce-handler true}))
   
   (add-handler
-   test-emitter :oi
-   (fn [[oi] handler-promise]
+   test-emitter :hi
+   (fn [[hi] handler-promise]
      (println "asdf")
      (Thread/sleep 1000)
-     (when handler-promise (deliver handler-promise "olá"))))
+     (when handler-promise (deliver handler-promise "hello there!"))))
+
+  (deref (dispatch-event test-emitter [:hi "hi"] {:enforce-handler true}))
 
   (time
    (dotimes [_ 100]
-     (dispatch-event test-emitter :oi "oi")))
+     (dispatch-event test-emitter :hi "hi")))
 
-  (remove-observer test-emitter :oi :println-obs)
-  (remove-handler test-emitter :oi)
+  (remove-observer test-emitter :hi :println-obs)
+  (remove-handler test-emitter :hi)
   (stop-listening test-emitter)
 
   test-emitter)

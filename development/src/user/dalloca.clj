@@ -28,7 +28,7 @@
                                      :immediately-start? false}))
   (start-listening test-emitter)
   (add-observer test-emitter :oi :println-obs println)
-  (dispatch-event test-emitter :oi "oi")
+  (dispatch-event test-emitter [:oi "oi"])
   (remove-observer test-emitter :oi :println-obs)
   (stop-listening test-emitter)
   test-emitter)

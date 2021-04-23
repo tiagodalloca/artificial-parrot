@@ -5,7 +5,7 @@
 
 (defn message-post [{:keys [emitter] :as deps}
                     {{{:keys [text]} :body} :parameters :as request}]
-  (events/dispatch-event emitter ::api/message-post {:text text :request request})
+  (events/dispatch-event emitter [::api/message-post {:text text :request request}])
   {:body {:message "message received; to be sent."}})
 
 (defn webhook-listener-post [{:keys [emitter] :as deps}
@@ -14,13 +14,13 @@
                           :url url
                           :headers headers
                           :query-params query-params}]
-    (events/dispatch-event emitter ::api/webhook-listener-post webhook-listener)
+    (events/dispatch-event emitter [::api/webhook-listener-post webhook-listener])
     {:body {:message "webhook listener posted; to be added."
             :webhook-listener webhook-listener}}))
 
 (defn webhook-listener-delete [{:keys [emitter] :as deps}
                                {{{:keys [id]} :query} :parameters :as request}]
-  (events/dispatch-event emitter ::api/webhook-listener-delete id)
+  (events/dispatch-event emitter [::api/webhook-listener-delete id])
   {:body {:message (str "webhook listener of id=" id "to be deleted.")}})
 
 (defn get-handlers [deps]

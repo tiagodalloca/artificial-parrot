@@ -64,7 +64,7 @@
                  ::deliver-messages!
                  (fn [_ _ _ ns]
                    (events/dispatch-event
-                    emitter ::messenger-interface/message-delivered ns)))
+                    emitter [::messenger-interface/message-delivered ns])))
       (events/add-observer
        emitter
        ::api/message-post
