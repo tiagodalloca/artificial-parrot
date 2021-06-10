@@ -26,11 +26,12 @@
                       :chan-buf-size 10
                       :immediately-start? true}}
 
-   ::terminal-messenger {:introduction ["Let's shatter those dreams"]
+   ::terminal-messenger {:introduction ["Intro: hi antony"]
                          :emitter (ig/ref ::emitter)}
 
    ::println-notifier {:opts {:type ::stdout-notifier/stdout-notifier}
                        :emitter (ig/ref ::emitter)}
+   
    ::http-listeners {:emitter (ig/ref ::emitter)}
    ::http-notifier {:opts {:type ::http-notifier/http-notifier}
                     :http-listeners (ig/ref ::http-listeners)
@@ -99,7 +100,7 @@
      (notify-message! opts [message])))
   args)
 
-(defmethod ig/init-key ::println-notifier [_ {:keys [opts emitter]}]
+(defmethod ig/halt-key! ::println-notifier [_ {:keys [opts emitter]}]
   (events/remove-observer
    emitter
    ::messenger-interface/message-delivered
@@ -168,48 +169,6 @@
 
 (comment
   (clear)
-  (prep)
   (init)
-  (reset))
-
-(alias 'api-handlers 'artificial-parrot.messenger.api.handlers)
-
-(comment
-  (def server (get integrant.repl.state/system ::server))
-  (def router (get integrant.repl.state/system ::router))
-  (def app (artificial-parrot.messenger.api/app router))
-  (def handlers (get integrant.repl.state/system ::handlers))
-  (def emitter (get integrant.repl.state/system ::emitter))
-  (def http-listeners (get integrant.repl.state/system ::http-listeners))
-  ;; (def app artificial-parrot.messenger.api/instance-app)
-
-  (-> (ring-mock/request :post "/api/message")
-      (ring-mock/json-body {:text "olá de volta"})
-      (ring-mock/header "Accept" "application/json")
-      (->> (def mock-request) deref)
-      app
-      (->> (def resp) deref))
-
-  (reitit.core/match-by-path router "/api/message")
-
-  (app ring.adapter.jetty/request-map)
-
-
-  (-> 
-   ;; (ring-mock/request :post "api/message")
-   ;; (ring-mock/json-body {:text "olá de volta"})
-   ;; (ring-mock/header "Accept" "application/json")
-   ;; (->> (def mock-request) deref)
-   ;; app
-   ring.adapter.jetty/request-map
-   :body
-   ;; .getInputStream
-   (java.io.InputStreamReader. java.nio.charset.StandardCharsets/UTF_8)
-   (java.io.BufferedReader.)
-   (.lines)
-   (.collect (java.util.stream.Collectors/toList))
-   (->> (java.lang.String/join "\n"))
-   (->> (def request-500-problem) deref))
-
-  (apply (::api-handlers/message-post handlers) [{:parameters {:body { :text "olá de volta"}}}])
-  )
+  (reset)
+  (prep))
